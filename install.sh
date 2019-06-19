@@ -212,7 +212,7 @@ pushd "$lib_dir"
 			fi
 
 			make
-			sudo make install
+			make install
 		popd
 	fi
 
