@@ -269,7 +269,7 @@ if [ -z "$1" ] || contains "$*" vzlogger; then
 
         echo
         echo "installing vzlogger"
-        sudo make install
+        make install
         
     popd
 
