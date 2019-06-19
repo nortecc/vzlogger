@@ -224,9 +224,9 @@ pushd "$lib_dir"
 			if contains "$*" clean; then make clean; fi
 
 			make
-			sudo cp sml/lib/libsml.* /usr/lib/
-			sudo cp -R sml/include/* /usr/include/
-			sudo cp sml.pc /usr/lib/pkgconfig/
+			cp sml/lib/libsml.* /usr/lib/
+			cp -R sml/include/* /usr/include/
+			cp sml.pc /usr/lib/pkgconfig/
 		popd
 	fi
 
@@ -238,7 +238,7 @@ pushd "$lib_dir"
 			if contains "$*" clean; then make clean; fi
 
 			./build.sh
-			sudo make install
+			make install
 		popd
 	fi
 
@@ -283,8 +283,8 @@ if [ -z "$1" ] || contains "$*" vzlogger; then
 		if [[ $REPLY =~ ^[Yy]$ ]]; then
 			echo
 			echo "installing systemd unit file"
-			sudo cp ./etc/vzlogger.service "$systemd_unit"
-			sudo sed -i "s|/etc/vzlogger.conf|$vzlogger_conf|g" "$systemd_unit"
+			cp ./etc/vzlogger.service "$systemd_unit"
+			sed -i "s|/etc/vzlogger.conf|$vzlogger_conf|g" "$systemd_unit"
 		fi
 	fi
 
