@@ -279,13 +279,13 @@ if [ -z "$1" ] || contains "$*" vzlogger; then
 		echo "it is recommended to configure a vzlogger systemd service"
 		echo
 
-		read -p "add the systemd unit file? [y/N]" -n 1 -r
-		if [[ $REPLY =~ ^[Yy]$ ]]; then
+		##read -p "add the systemd unit file? [y/N]" -n 1 -r
+		##if [[ $REPLY =~ ^[Yy]$ ]]; then
 			echo
 			echo "installing systemd unit file"
 			cp ./etc/vzlogger.service "$systemd_unit"
 			sed -i "s|/etc/vzlogger.conf|$vzlogger_conf|g" "$systemd_unit"
-		fi
+		##fi
 	fi
 
 	if [ ! -e "$vzlogger_conf" ]; then
