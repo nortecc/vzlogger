@@ -23,13 +23,13 @@
  * along with volkszaehler.org. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "Meter.hpp"
 #include "Options.hpp"
-#include <common.h>
 #include <VZException.hpp>
+#include <common.h>
 #include <protocols/MeterD0.hpp>
 #include <protocols/MeterExec.hpp>
 #include <protocols/MeterFile.hpp>
@@ -48,46 +48,43 @@
 #endif
 //#include <protocols/.h>
 
-#define METER_DETAIL(NAME, CLASSNAME, DESC, MAX_RDS, PERIODIC) {				\
-		meter_protocol_##NAME, #NAME, DESC, MAX_RDS, PERIODIC/*, Meter##CLASSNAME */}
+#define METER_DETAIL(NAME, CLASSNAME, DESC, MAX_RDS)                                               \
+	{ meter_protocol_##NAME, #NAME, DESC, MAX_RDS }
 
-int Meter::instances=0;
+int Meter::instances = 0;
 
 static const meter_details_t protocols[] = {
-/*  aliasdescriptionmax_rdsperiodic
-	===============================================================================================*/
-	METER_DETAIL(file, File, "Read from file or fifo",32,false),
-	METER_DETAIL(exec, Exec, "Parse program output",32,false),
-	METER_DETAIL(random, Random, "Generate random values with a random walk",1,true),
-	METER_DETAIL(fluksov2, Fluksov2, "Read from Flukso's onboard SPI fifo",16,false),
-	METER_DETAIL(s0, S0, "S0-meter directly connected to RS232",4,false),
-	METER_DETAIL(d0, D0, "DLMS/IEC 62056-21 plaintext protocol",400,false),
+	// name, alias, description, max_rds
+	METER_DETAIL(file, File, "Read from file or fifo", 32),
+	METER_DETAIL(exec, Exec, "Parse program output", 32),
+	METER_DETAIL(random, Random, "Generate random values with a random walk", 1),
+	METER_DETAIL(fluksov2, Fluksov2, "Read from Flukso's onboard SPI fifo", 16),
+	METER_DETAIL(s0, S0, "S0-meter directly connected to RS232", 4),
+	METER_DETAIL(d0, D0, "DLMS/IEC 62056-21 plaintext protocol", 400),
 #ifdef SML_SUPPORT
-	METER_DETAIL(sml, Sml, "Smart Message Language as used by EDL-21, eHz and SyM²", 32,false),
+	METER_DETAIL(sml, Sml, "Smart Message Language as used by EDL-21, eHz and SyM²", 32),
 #endif // SML_SUPPORT
 #ifdef OCR_SUPPORT
-	METER_DETAIL(ocr, OCR, "Image processing/recognizing meter", 32, false), // TODO periodic or not periodic?
+	METER_DETAIL(ocr, OCR, "Image processing/recognizing meter", 32),
 #endif
-	METER_DETAIL(w1therm, W1therm, "W1-therm / 1wire temperature devices", 400, false),
+	METER_DETAIL(w1therm, W1therm, "W1-therm / 1wire temperature devices", 400),
 #ifdef OMS_SUPPORT
-	METER_DETAIL(oms, OMS, "OMS (M-BUS) protocol based devices", 100, false), // todo what is the max. amount of reading according to spec?
+	METER_DETAIL(oms, OMS, "OMS (M-BUS) protocol based devices", 100),
 #endif
 	//{} /* stop condition for iterator */
-	METER_DETAIL(none, NULL,NULL, 0,false),
+	METER_DETAIL(none, NULL, NULL, 0),
 };
 
-Meter::Meter(std::list<Option> pOptions) :
-		_name("meter")
-{
+Meter::Meter(std::list<Option> pOptions) : _name("meter") {
 	id = instances++;
 	OptionList optlist;
 
 	// set meter name
 	std::stringstream oss;
-	oss<<"mtr"<< id;
+	oss << "mtr" << id;
 	_name = oss.str();
 
-	//optlist.dump(pOptions);
+	// optlist.dump(pOptions);
 
 	try {
 		// protocol
@@ -95,8 +92,8 @@ Meter::Meter(std::list<Option> pOptions) :
 		print(log_debug, "Creating new meter with protocol %s.", name(), protocol_str);
 
 		if (meter_lookup_protocol(protocol_str, &_protocol_id) != SUCCESS) {
-//print(log_alert, "Invalid protocol: %s", mtr, protocol_str);
-//return ERR; /* skipping this meter */
+			// print(log_alert, "Invalid protocol: %s", mtr, protocol_str);
+			// return ERR; /* skipping this meter */
 			throw vz::VZException("Protocol not found.");
 		}
 	} catch (vz::VZException &e) {
@@ -135,73 +132,70 @@ Meter::Meter(std::list<Option> pOptions) :
 		throw;
 	}
 
-	try{
-		const meter_details_t *details = meter_get_details(_protocol_id);
-		if (details->periodic == true && _interval < 0) {
-			print(log_alert, "Interval has to be set and positive!", name());
-		}
+	try {
+		(void)meter_get_details(_protocol_id);
 	} catch (vz::VZException &e) {
 		std::stringstream oss;
 		oss << e.what();
 		print(log_alert, "Missing protocol or invalid type (%s)", name(), oss.str().c_str());
 		throw;
 	}
-	switch(_protocol_id) {
-		case meter_protocol_file:
-			_protocol = vz::protocol::Protocol::Ptr(new MeterFile(pOptions));
-			_identifier = ReadingIdentifier::Ptr(new StringIdentifier());
-			break;
-		case meter_protocol_exec:
-			_protocol = vz::protocol::Protocol::Ptr(new MeterExec(pOptions));
-			_identifier = ReadingIdentifier::Ptr(new StringIdentifier());
-			break;
-		case meter_protocol_random:
-			_protocol = vz::protocol::Protocol::Ptr(new MeterRandom(pOptions));
-			_identifier = ReadingIdentifier::Ptr(new NilIdentifier());
-			break;
-		case meter_protocol_s0:
-			_protocol = vz::protocol::Protocol::Ptr(new MeterS0(pOptions));
-			_identifier = ReadingIdentifier::Ptr(new StringIdentifier());
-			break;
-		case meter_protocol_d0:
-			_protocol = vz::protocol::Protocol::Ptr(new MeterD0(pOptions));
-			_identifier = ReadingIdentifier::Ptr(new ObisIdentifier());
-			break;
+	switch (_protocol_id) {
+	case meter_protocol_file:
+		_protocol = vz::protocol::Protocol::Ptr(new MeterFile(pOptions));
+		_identifier = ReadingIdentifier::Ptr(new StringIdentifier());
+		break;
+	case meter_protocol_exec:
+		_protocol = vz::protocol::Protocol::Ptr(new MeterExec(pOptions));
+		_identifier = ReadingIdentifier::Ptr(new StringIdentifier());
+		break;
+	case meter_protocol_random:
+		_protocol = vz::protocol::Protocol::Ptr(new MeterRandom(pOptions));
+		_identifier = ReadingIdentifier::Ptr(new NilIdentifier());
+		break;
+	case meter_protocol_s0:
+		_protocol = vz::protocol::Protocol::Ptr(new MeterS0(pOptions));
+		_identifier = ReadingIdentifier::Ptr(new StringIdentifier());
+		break;
+	case meter_protocol_d0:
+		_protocol = vz::protocol::Protocol::Ptr(new MeterD0(pOptions));
+		_identifier = ReadingIdentifier::Ptr(new ObisIdentifier());
+		break;
 #ifdef SML_SUPPORT
-		case  meter_protocol_sml:
-			_protocol = vz::protocol::Protocol::Ptr(new MeterSML(pOptions));
-			_identifier = ReadingIdentifier::Ptr(new ObisIdentifier());
-			break;
+	case meter_protocol_sml:
+		_protocol = vz::protocol::Protocol::Ptr(new MeterSML(pOptions));
+		_identifier = ReadingIdentifier::Ptr(new ObisIdentifier());
+		break;
 #endif
-		case meter_protocol_fluksov2:
-			_protocol = vz::protocol::Protocol::Ptr(new MeterFluksoV2(pOptions));
-			_identifier = ReadingIdentifier::Ptr(new ChannelIdentifier());
-			break;
+	case meter_protocol_fluksov2:
+		_protocol = vz::protocol::Protocol::Ptr(new MeterFluksoV2(pOptions));
+		_identifier = ReadingIdentifier::Ptr(new ChannelIdentifier());
+		break;
 #ifdef OCR_SUPPORT
-		case meter_protocol_ocr:
-			_protocol = vz::protocol::Protocol::Ptr(new MeterOCR(pOptions));
-			_identifier = ReadingIdentifier::Ptr(new StringIdentifier());
-			break;
+	case meter_protocol_ocr:
+		_protocol = vz::protocol::Protocol::Ptr(new MeterOCR(pOptions));
+		_identifier = ReadingIdentifier::Ptr(new StringIdentifier());
+		break;
 #endif
 	case meter_protocol_w1therm:
-			_protocol = vz::protocol::Protocol::Ptr(new MeterW1therm(pOptions));
-			_identifier = ReadingIdentifier::Ptr(new StringIdentifier());
-			break;
+		_protocol = vz::protocol::Protocol::Ptr(new MeterW1therm(pOptions));
+		_identifier = ReadingIdentifier::Ptr(new StringIdentifier());
+		break;
 #ifdef OMS_SUPPORT
 	case meter_protocol_oms:
 		_protocol = vz::protocol::Protocol::Ptr(new MeterOMS(pOptions));
 		_identifier = ReadingIdentifier::Ptr(new ObisIdentifier());
 		break;
 #endif
-		default:
-			break;
+	default:
+		break;
 	}
 
 	try {
 		// enable
 		_enable = optlist.lookup_bool(pOptions, "enabled");
 	} catch (vz::OptionNotFoundException &e) {
-		_enable = false; /* bye default meter is disabled */
+		_enable = false; /* by default meter is disabled */
 	} catch (vz::VZException &e) {
 		print(log_alert, "Invalid type for enable", name());
 		throw;
@@ -219,18 +213,20 @@ Meter::Meter(std::list<Option> pOptions) :
 
 	// does the meter allow interval parameter?
 	if (_interval > 0 && !(_protocol.get()->allowInterval())) {
-		print(log_warning, "Interval set but not allowed for this meter! Ignoring (setting to 0). Use aggregation if you want less frequent output.", name());
+		print(log_warning,
+			  "Interval set but not allowed for this meter! Ignoring (setting to 0). Use "
+			  "aggregation if you want less frequent output.",
+			  name());
 		_interval = 0;
 	}
 
 	print(log_debug, "Meter configured, %s.", name(), _enable ? "enabled" : "disabled");
 }
 
-//Meter::Meter(const Meter *mtr) {
+// Meter::Meter(const Meter *mtr) {
 //}
 
-Meter::~Meter() {
-}
+Meter::~Meter() {}
 
 void Meter::open() {
 	if (_protocol->open() < 0) {
@@ -239,31 +235,28 @@ void Meter::open() {
 	}
 }
 
-int Meter::close() {
-	return _protocol->close();
-}
+int Meter::close() { return _protocol->close(); }
 
-size_t Meter::read(std::vector<Reading> &rds, size_t n) {
-	return _protocol->read(rds, n);
-}
+size_t Meter::read(std::vector<Reading> &rds, size_t n) { return _protocol->read(rds, n); }
 
-int meter_lookup_protocol(const char* name, meter_protocol_t *protocol) {
-	if (!name) return ERR_NOT_FOUND;
-	for (const meter_details_t *it = meter_get_protocols(); it->id != meter_protocol_none; it++) { // we have to stop when the id is null not the ptr to the array!
+int meter_lookup_protocol(const char *name, meter_protocol_t *protocol) {
+	if (!name)
+		return ERR_NOT_FOUND;
+	for (const meter_details_t *it = meter_get_protocols(); it->id != meter_protocol_none;
+		 it++) { // we have to stop when the id is null not the ptr to the array!
 		if (it->name && (strcasecmp(it->name, name) == 0)) {
 			if (protocol)
-				*protocol = it->id; // else ignore anyhow. can be used to check whether a protocol exists.
+				*protocol =
+					it->id; // else ignore anyhow. can be used to check whether a protocol exists.
 			return SUCCESS;
 		}
 	}
 	return ERR_NOT_FOUND;
 }
 
-const meter_details_t * meter_get_protocols() {
-	return protocols;
-}
+const meter_details_t *meter_get_protocols() { return protocols; }
 
-const meter_details_t * meter_get_details(meter_protocol_t protocol) {
+const meter_details_t *meter_get_details(meter_protocol_t protocol) {
 	for (const meter_details_t *it = protocols; it->id != meter_protocol_none; it++) {
 		if (it->id == protocol) {
 			return it;

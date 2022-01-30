@@ -17,34 +17,57 @@ If you're impatient you can quickstart using (Debian Wheezy):
     sudo apt-get install build-essential git-core cmake pkg-config subversion libcurl3-dev \
       libgnutls-dev libsasl2-dev uuid-dev uuid-runtime libtool dh-autoreconf libunistring-dev
 
-For Debian Jessie be sure to add:
+For Debian Jessie, be sure to add:
 
     sudo apt-get install libgcrypt20-dev
 
-For Debian Stretch use:
+For Debian Stretch, use:
 
     sudo apt-get install git cmake autoconf libtool uuid-dev libcurl4-openssl-dev libssl-dev \
       libgnutls28-dev libgcrypt20-dev libmicrohttpd-dev libsasl2-dev libunistring-dev
+      
+For Debian Buster, use:
 
-Ubuntu 18.04LTS (bionic) needs an additional:
+    sudo apt-get install git cmake autoconf libtool uuid-dev libcurl4-openssl-dev libssl-dev \
+      libgnutls28-dev libgcrypt20-dev libmicrohttpd-dev libsasl2-dev libunistring-dev build-essential
 
-   sudo apt-get install libunistring-dev
+Ubuntu 18.04 LTS (bionic) needs an additional:
+
+    sudo apt-get install libunistring-dev
 (this might be needed on others now as well as we link unconditionally against libunistring)
 
 If you want to use MQTT support:
-  sudo apt-get install libmosquitto-dev
+
+    sudo apt-get install libmosquitto-dev
 
 Then run the installation:
 
     wget --no-check-certificate https://raw.github.com/volkszaehler/vzlogger/master/install.sh
     sudo bash install.sh
+    
+Docker
+------
+
+You can also build a docker image:
+
+     docker build -t vzlogger .
+     
+Note, that this will use the newest vzlogger from volkszaehler github (not your local clone).
+You can start it:
+
+     docker run --restart=always -v /home/pi/projects/vzlogger-docker:/cfg \
+     --device=/dev/serial/by-id/usb-FTDI_FT230X_Basic_UART_D30A9U5N-if00-port0 \
+     --name vzlogger -d vzlogger
+
+where /home/pi/projects/vzlogger-docker is the path to the directory containing the vzlogger.conf file and
+/dev/serial/by-id/usb-FTDI_FT230X_Basic_UART_D30A8U6N-if00-port0 is your device. You can pass several devices if you have them.
 
 Mailing List
 -------------
 If you have questions, contact the volkszaehler mailing lists:
 
-  * Users mailing list: volkszaehler@lists.volkszaehler.org
-  * Developers mailing list: volkszaehler-dev@lists.volkszaehler.org
+  * Users mailing list: https://demo.volkszaehler.org/mailman/listinfo/volkszaehler-users
+  * Developers mailing list: https://demo.volkszaehler.org/mailman/listinfo/volkszaehler-dev
 
 More information is available in our wiki:
 http://wiki.volkszaehler.org/software/controller/vzlogger
