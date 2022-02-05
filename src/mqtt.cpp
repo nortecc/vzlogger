@@ -292,10 +292,10 @@ void MqttClient::publish(Channel::Ptr ch, Reading &rds, bool aggregate) {
 		if (_timestamp) {
 			payload_obj = json_object_new_object();
 			json_object_object_add(payload_obj, "timestamp", json_object_new_int64(rds.time_ms()));
-			json_object_object_add(payload_obj, "value", json_object_new_double(rds.value()/1000));
+			json_object_object_add(payload_obj, "value", json_object_new_double(rds.value() / 1000));
 			payload = json_object_to_json_string(payload_obj);
 		} else {
-			payload = std::to_string(rds.value()/1000);
+			payload = std::to_string(rds.value() / 1000);
 		}
 
 		print(log_finest, "publish %s=%s", "mqtt", topic.c_str(), payload.c_str());
